@@ -1,12 +1,93 @@
-#!/bin/bash
-set -e
+services:
+  - type: web
+    name: evolution-api
+    env: node
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: npm install && npm run db:generate && npm run db:deploy
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SERVER_URL
+        sync: false
+      - key: AUTHENTICATION_TYPE
+        value: apikey
+      - key: AUTHENTICATION_API_KEY
+        generateValue: true
+      - key: AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES
+        value: "true"
+      - key: DATABASE_ENABLED
+        value: "true"
+      - key: DATABASE_PROVIDER
+        value: postgresql
+      - key: DATABASE_CONNECTION_URI
+        fromDatabase:
+          name: evolution-db
+          property: connectionString
+      - key: DATABASE_CONNECTION_CLIENT_NAME
+        value: evolution_api
+      - key: DATABASE_SAVE_DATA_INSTANCE
+        value: "true"
+      - key: DATABASE_SAVE_DATA_NEW_MESSAGE
+        value: "true"
+      - key: DATABASE_SAVE_MESSAGE_UPDATE
+        value: "true"
+      - key: DATABASE_SAVE_DATA_CONTACTS
+        value: "true"
+      - key: DATABASE_SAVE_DATA_CHATS
+        value: "true"
+      - key: DATABASE_SAVE_DATA_LABELS
+        value: "true"
+      - key: DATABASE_SAVE_DATA_HISTORIC
+        value: "true"
+      - key: REDIS_ENABLED
+        value: "false"
+      - key: REDIS_URI
+        value: ""
+      - key: REDIS_PREFIX_KEY
+        value: evolution
+      - key: LOG_LEVEL
+        value: ERROR,WARN,DEBUG,INFO,LOG,VERBOSE,DARK,WEBHOOKS
+      - key: LOG_COLOR
+        value: "true"
+      - key: LOG_BAILEYS
+        value: error
+      - key: DEL_INSTANCE
+        value: "false"
+      - key: DEL_TEMP_INSTANCES
+        value: "true"
+      - key: WEBHOOK_GLOBAL_ENABLED
+        value: "false"
+      - key: WEBHOOK_GLOBAL_URL
+        value: ""
+      - key: WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS
+        value: "false"
+      - key: WEBHOOK_EVENTS_QRCODE_UPDATED
+        value: "true"
+      - key: WEBHOOK_EVENTS_MESSAGES_UPSERT
+        value: "true"
+      - key: WEBHOOK_EVENTS_MESSAGES_UPDATE
+        value: "true"
+      - key: WEBHOOK_EVENTS_CONNECTION_UPDATE
+        value: "true"
+      - key: WEBHOOK_EVENTS_CALL
+        value: "true"
+      - key: CONFIG_SESSION_PHONE_CLIENT
+        value: Evolution API
+      - key: CONFIG_SESSION_PHONE_NAME
+        value: Chrome
+      - key: QRCODE_LIMIT
+        value: "30"
+      - key: QRCODE_COLOR
+        value: "#198754"
 
-echo "🚀 Starting Evolution API deployment on Render..."
-
-# Run database migrations
-echo "📦 Running database migrations..."
-npx prisma generate
-npx prisma migrate deploy
-
-echo "✅ Migrations complete. Starting server..."
-exec npm start
+databases:
+  - name: evolution-db
+    databaseName: evolution_api
+    user: evolution_user
+    plan: starter
